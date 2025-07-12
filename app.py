@@ -1,34 +1,24 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import pickle
-import pandas as pd
 from schema.user_input import UserInput
-
-#import the ml model
-with open('/home/sea-dragon/insurence-premium-prediction/model/model.pkl', 'rb') as f:
-    model = pickle.load(f)
-
-
-MODEL_VERSION = "1.0.0"
+from model.predict import predict_output,MODEL_VERSION
 
 
 # Initialize FastAPI app
 app = FastAPI()
 
+
 # Define the root endpoint
-@app.get("/version")
-def get_version():
-    return {"version": MODEL_VERSION}
-
-
 @app.get("/")
 def home():
     return {"message": "Welcome to the Insurance Premium Prediction API"}
 
 
 # Health check endpoint
+from typing import Dict, Any
+
 @app.get("/health")
-def health_check():
+def health_check() -> Dict[str, Any]:
     return {"message": "API is healthy"
             , "version": MODEL_VERSION
             , "status": "OK"
@@ -38,14 +28,14 @@ def health_check():
 @app.post("/predict")
 def predict_premium(data: UserInput):
 
-    input_df = pd.DataFrame([{
+    user_input: Dict[str, Any] = {
         'bmi': data.bmi,
         'lifestyle_risk': data.lifestyle_risk,
         'age_group': data.age_group,
         'city_tier': data.city_tier,
         'occupation': data.occupation,
         'income_lpa': data.income_lpa
-    }])
+    }
 
-    prediction = model.predict(input_df)[0]
+    prediction = predict_output(user_input)
     return JSONResponse(status_code=200, content={'predicted_category': prediction})
