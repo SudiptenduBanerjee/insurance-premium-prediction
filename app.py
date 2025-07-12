@@ -37,5 +37,9 @@ def predict_premium(data: UserInput):
         'income_lpa': data.income_lpa
     }
 
-    prediction = predict_output(user_input)
-    return JSONResponse(status_code=200, content={'predicted_category': prediction})
+
+    try:
+        prediction = predict_output(user_input)
+        return JSONResponse(content={"predicted_premium": prediction})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
