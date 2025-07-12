@@ -9,6 +9,11 @@ import pandas as pd
 with open('/home/sea-dragon/insurence-premium-prediction/model/model.pkl', 'rb') as f:
     model = pickle.load(f)
 
+
+MODEL_VERSION = "1.0.0"
+
+
+# Initialize FastAPI app
 app = FastAPI()
 
 @app.get("/")
@@ -17,7 +22,10 @@ def home():
 
 @app.get("/health")
 def health_check():
-    return {"message": "API is healthy"}   
+    return {"message": "API is healthy"
+            , "version": MODEL_VERSION
+            , "status": "OK"
+            }   
 
 tier_1_cities = ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune"]
 tier_2_cities = [
