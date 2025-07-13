@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from schema.user_input import UserInput
+from schema.prediction_response import PredictionResponse
 from model.predict import predict_output,MODEL_VERSION
 
 
@@ -25,7 +26,8 @@ def health_check() -> Dict[str, Any]:
             }   
 
 
-@app.post("/predict")
+
+@app.post('/predict', response_model=PredictionResponse)
 def predict_premium(data: UserInput):
 
     user_input: Dict[str, Any] = {
