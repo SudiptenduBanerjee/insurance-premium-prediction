@@ -1,6 +1,6 @@
 import streamlit as st
 import requests
-import json
+from typing import Dict, Any
 
 # FastAPI endpoint
 API_URL = "http://localhost:8000/predict"
@@ -45,10 +45,10 @@ with st.form(key="user_input_form"):
         help="Enter your annual income in lakhs"
     )
     
-    smoker = st.checkbox(
+    smoker = st.selectbox(
         "Smoker",
-        value=False,
-        help="Check if you are a smoker"
+        options=["Yes", "No"],
+        help="Check if you are a smoke or not "
     )
     
     city = st.text_input(
@@ -94,15 +94,23 @@ if submit_button:
         # Check if the request was successful
         if response.status_code == 200:
             result = response.json()
-            # Debug: Display the raw response to inspect its structure
-            st.write("API Response:", result)
             
             # Extract predicted_premium and ensure it's a number
             predicted_premium = result.get("predicted_premium")
-            if isinstance(predicted_premium, (int, float)):
-                st.success(f"Predicted Insurance Premium: ₹{predicted_premium:,.2f}")
+            if isinstance(predicted_premium, dict):
+                predicted_premium_dict: Dict[str, Any] = predicted_premium
+                category: str = str(predicted_premium_dict.get("predicted_category", "Unknown"))
+                confidence_val = predicted_premium_dict.get("confidence", 0.0)
+                if isinstance(confidence_val, (int, float)):
+                    confidence = float(confidence_val)
+                else:
+                    confidence = 0.0
+                class_probs = predicted_premium_dict.get("class_probabilities", {})
+                if not isinstance(class_probs, dict):
+                    class_probs = {}
+                st.success(f"Predicted Category: {category} (Confidence: {confidence:.2f})")
             else:
-                st.error(f"Error: Expected a numeric value for predicted_premium, got {type(predicted_premium)}: {predicted_premium}")
+                st.error(f"Error: Unexpected format for predicted_premium: {predicted_premium}")
         else:
             error_message = response.json().get("error", "Unknown error")
             st.error(f"API Error: {error_message}")
